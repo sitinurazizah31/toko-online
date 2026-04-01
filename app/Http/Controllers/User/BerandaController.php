@@ -10,7 +10,7 @@ class BerandaController extends Controller
 {
     public function index()
     {
-        // 1. Ambil produk terbaru 
+        // 1. Ambil produk terbaru
         // Note: Pakai 'ProdukID' dan 'Stok' sesuai foto database terbaru kamu
         $produkTerbaru = DB::table('produk')
             ->where('Stok', '>', 0) // S besar sesuai phpMyAdmin
@@ -26,13 +26,22 @@ class BerandaController extends Controller
 
         // 3. Hitung keranjang (Biar icon keranjang ada angkanya)
         $jumlahKeranjang = 0;
+        $wishlistProdukIds = [];
         if (Session::has('pelanggan_id')) {
+            $pelangganId = Session::get('pelanggan_id');
+
             $jumlahKeranjang = DB::table('keranjang')
-                ->where('PelangganID', Session::get('pelanggan_id'))
+                ->where('PelangganID', $pelangganId)
                 ->sum('jumlah') ?? 0;
+
+            $wishlistProdukIds = DB::table('wishlist')
+                ->where('PelangganID', $pelangganId)
+                ->pluck('ProdukID')
+                ->map(fn ($id) => (int) $id)
+                ->toArray();
         }
 
         // Pastikan file blade kamu ada di: resources/views/admin/user/beranda.blade.php
-        return view('admin.user.beranda', compact('produkTerbaru', 'kategori', 'jumlahKeranjang'));
+        return view('admin.user.beranda', compact('produkTerbaru', 'kategori', 'jumlahKeranjang', 'wishlistProdukIds'));
     }
 }

@@ -172,7 +172,7 @@
         </form>
 
         <div class="login-link">
-            Sudah punya akun? <a href="{{ route('login') }}">Masuk di sini</a>
+            Sudah punya akun? <a href="{{ route('user.login') }}">Masuk di sini</a>
         </div>
     </div>
 </div>

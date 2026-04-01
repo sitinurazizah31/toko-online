@@ -5,7 +5,7 @@
 @section('styles')
 <style>
     body { background-color: #f5f5f5; }
-    
+
     /* Header ala Shopee */
     .shopee-header {
         background: linear-gradient(180deg, #f53d2d, #ff6633);
@@ -16,7 +16,7 @@
         gap: 15px;
         position: relative;
     }
-    
+
     .shopee-avatar {
         width: 60px;
         height: 60px;
@@ -24,13 +24,13 @@
         border: 2px solid rgba(255,255,255,0.5);
         object-fit: cover;
     }
-    
+
     .shopee-user-info h2 {
         font-size: 18px;
         font-weight: 600;
         margin: 0;
     }
-    
+
     .shopee-user-info span {
         font-size: 12px;
         background: rgba(0,0,0,0.2);
@@ -96,7 +96,7 @@
     .logout-section {
         padding: 30px 20px;
     }
-    
+
     .btn-logout {
         display: block;
         width: 100%;
@@ -115,7 +115,7 @@
 @section('content')
 <div class="shopee-profile">
     <div class="shopee-header">
-        <a href="#" class="shopee-settings-icon">⚙️</a>
+        <a href="{{ route('user.pengaturan') }}" class="shopee-settings-icon">⚙️</a>
         <img src="https://ui-avatars.com/api/?name={{ urlencode($pelanggan->NamaPelanggan) }}&background=fff&color=f53d2d" class="shopee-avatar">
         <div class="shopee-user-info">
             <h2>{{ $pelanggan->NamaPelanggan }}</h2>
@@ -125,29 +125,29 @@
 
     <div class="menu-container">
         <div class="menu-group-title">Pesanan Saya</div>
-        <a href="#" class="menu-item">
+        <a href="{{ route('user.pesanan') }}" class="menu-item">
             <div class="menu-icon">📦</div>
             <div class="menu-text">Riwayat Pesanan</div>
             <div class="menu-arrow">▶</div>
         </a>
-        <a href="#" class="menu-item">
+        <a href="{{ route('user.pesanan', ['status' => 'belum_bayar']) }}" class="menu-item">
             <div class="menu-icon">💳</div>
             <div class="menu-text">Belum Bayar</div>
             <div class="menu-arrow">▶</div>
         </a>
 
         <div class="menu-group-title" style="margin-top: 15px;">Pengaturan Akun</div>
-        <a href="#" class="menu-item">
+        <a href="{{ route('user.pengaturan') }}" class="menu-item">
             <div class="menu-icon">👤</div>
             <div class="menu-text">Ubah Profil ({{ $pelanggan->email }})</div>
             <div class="menu-arrow">▶</div>
         </a>
-        <a href="#" class="menu-item">
+        <a href="{{ route('user.pengaturan') }}#alamat" class="menu-item">
             <div class="menu-icon">📍</div>
             <div class="menu-text">Alamat Saya</div>
             <div class="menu-arrow">▶</div>
         </a>
-        <a href="#" class="menu-item">
+        <a href="{{ route('user.pengaturan') }}#telepon" class="menu-item">
             <div class="menu-icon">📞</div>
             <div class="menu-text">Nomor Telepon: {{ $pelanggan->NomorTelepon ?? '-' }}</div>
             <div class="menu-arrow">▶</div>

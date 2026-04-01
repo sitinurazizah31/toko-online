@@ -11,18 +11,16 @@
     @forelse($keranjang as $item)
     <div class="cart-item" style="background: white; margin-top: 10px; padding: 15px; display: flex; gap: 15px; align-items: center;">
         <input type="checkbox" checked style="accent-color: #ee4d2d;">
-        
-        {{-- PERBAIKAN: Nama kolom adalah 'Foto' sesuai query mysql kamu --}}
-        <img src="{{ asset('storage/' . $item->Foto) }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
-        
+
+        <img src="{{ asset('storage/' . $item->foto) }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+
         <div class="item-info" style="flex: 1;">
             <div class="item-name" style="font-size: 14px; font-weight: 500;">{{ $item->NamaProduk }}</div>
             <div class="item-price" style="color: #ee4d2d; font-weight: 700;">Rp {{ number_format($item->Harga, 0, ',', '.') }}</div>
-            
+
             <div class="item-qty" style="display: flex; align-items: center; border: 1px solid #ddd; width: fit-content; margin-top: 10px;">
                 <button style="padding: 2px 10px; background: none; border: none;">-</button>
-                {{-- PERBAIKAN: Nama kolom adalah 'Jumlah' (J besar) --}}
-                <input type="text" value="{{ $item->Jumlah }}" readonly style="width: 30px; text-align: center; border: none; border-left: 1px solid #ddd; border-right: 1px solid #ddd; font-size: 12px;">
+                <input type="text" value="{{ $item->jumlah }}" readonly style="width: 30px; text-align: center; border: none; border-left: 1px solid #ddd; border-right: 1px solid #ddd; font-size: 12px;">
                 <button style="padding: 2px 10px; background: none; border: none;">+</button>
             </div>
         </div>
@@ -46,7 +44,15 @@
         <p style="font-size: 12px; color: #888; margin: 0;">Total:</p>
         <h3 style="color: #ee4d2d; margin: 0; font-size: 18px;">Rp {{ number_format($totalHarga, 0, ',', '.') }}</h3>
     </div>
-    <button style="background: #ee4d2d; color: white; padding: 12px 30px; border-radius: 4px; border: none; font-weight: 700;">Checkout</button>
+    <form action="{{ route('user.keranjang.checkout') }}" method="POST" style="display:flex;align-items:center;gap:10px;">
+        @csrf
+        <select name="metode" style="padding:10px;border:1px solid #ddd;border-radius:6px;font-size:13px;" required>
+            <option value="Transfer">Transfer</option>
+            <option value="COD">COD</option>
+            <option value="E-Wallet">E-Wallet</option>
+        </select>
+        <button type="submit" style="background: #ee4d2d; color: white; padding: 12px 30px; border-radius: 4px; border: none; font-weight: 700; cursor: pointer;">Checkout</button>
+    </form>
 </div>
 @endif
 @endsection

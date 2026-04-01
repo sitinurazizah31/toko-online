@@ -12,7 +12,7 @@ class KeranjangController extends Controller
     public function index()
     {
         $pelangganId = Session::get('pelanggan_id');
-        
+
         // Cek jika belum login, lempar ke halaman login
         if (!$pelangganId) {
             return redirect()->route('user.login')->with('error', 'Silakan login terlebih dahulu.');
@@ -22,12 +22,12 @@ class KeranjangController extends Controller
         $keranjang = DB::table('keranjang')
             ->join('produk', 'keranjang.ProdukID', '=', 'produk.ProdukID')
             ->where('keranjang.PelangganID', $pelangganId)
-            ->select('keranjang.*', 'produk.NamaProduk', 'produk.Harga', 'produk.Foto')
+            ->select('keranjang.*', 'produk.NamaProduk', 'produk.Harga', 'produk.foto')
             ->get();
 
         // Hitung total harga otomatis
         $totalHarga = $keranjang->sum(function($item) {
-            return $item->Harga * $item->Jumlah;
+            return $item->Harga * $item->jumlah;
         });
 
         // SESUAIKAN JALUR VIEW: karena user di dalam admin
@@ -69,5 +69,67 @@ class KeranjangController extends Controller
     {
         DB::table('keranjang')->where('KeranjangID', $id)->delete();
         return back()->with('success', 'Produk dihapus dari keranjang!');
+    }
+
+    public function checkout(Request $request)
+    {
+        $pelangganId = Session::get('pelanggan_id');
+
+        if (!$pelangganId) {
+            return redirect()->route('user.login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $request->validate([
+            'metode' => 'required|in:Transfer,COD,E-Wallet',
+        ]);
+
+        $metodePembayaran = $request->metode;
+
+        $items = DB::table('keranjang')
+            ->join('produk', 'keranjang.ProdukID', '=', 'produk.ProdukID')
+            ->where('keranjang.PelangganID', $pelangganId)
+            ->select('keranjang.KeranjangID', 'keranjang.jumlah', 'produk.Harga')
+            ->get();
+
+        if ($items->isEmpty()) {
+            return redirect()->route('user.keranjang')->with('error', 'Keranjang masih kosong, tidak bisa checkout.');
+        }
+
+        $totalHarga = $items->sum(function ($item) {
+            return $item->Harga * $item->jumlah;
+        });
+
+        DB::transaction(function () use ($pelangganId, $items, $totalHarga, $metodePembayaran) {
+            $penjualanId = DB::table('penjualan')->insertGetId([
+                'PelangganID' => $pelangganId,
+                'TanggalPenjualan' => now()->toDateString(),
+                'TotalHarga' => $totalHarga,
+                'status_pembayaran' => 'belum_bayar',
+                'status_pesanan' => 'diproses',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $namaPelanggan = DB::table('pelanggan')
+                ->where('PelangganID', $pelangganId)
+                ->value('NamaPelanggan') ?? 'Pelanggan';
+
+            // Otomatis buat data pembayaran sesuai metode yang dipilih user.
+            DB::table('pembayaran')->insert([
+                'penjualan_id' => $penjualanId,
+                'nama' => $namaPelanggan,
+                'metode' => $metodePembayaran,
+                'total' => $totalHarga,
+                'status' => 'menunggu',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('keranjang')->where('PelangganID', $pelangganId)->delete();
+        });
+
+        return redirect()
+            ->route('user.pesanan', ['status' => 'belum_bayar'])
+            ->with('success', 'Checkout berhasil! Metode pembayaran: ' . $metodePembayaran . '. Pesanan masuk ke riwayat belum bayar.');
     }
 }

@@ -10,9 +10,7 @@
 
         .navbar { background: #FF6B35; padding: 12px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; }
         .nav-logo { color: white; font-size: 20px; font-weight: 800; text-decoration: none; flex-shrink: 0; }
-        .nav-search { flex: 1; display: flex; align-items: center; background: white; border-radius: 8px; padding: 8px 12px; gap: 8px; text-decoration: none; }
-        .nav-search-text { font-size: 13px; color: #aaa; }
-        .nav-icons { display: flex; gap: 10px; align-items: center; }
+        .nav-icons { display: flex; gap: 10px; align-items: center; margin-left: auto; }
         .nav-icon { color: white; font-size: 20px; text-decoration: none; position: relative; }
         .nav-badge { position: absolute; top: -6px; right: -6px; background: #ffcc00; color: #333; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
         .btn-login-nav { background: white; color: #FF6B35; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; }
@@ -24,6 +22,30 @@
 
         .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 16px; color: #166534; font-size: 13px; margin: 12px 16px; }
         .alert-error { background: #fff2f2; border: 1px solid #ffcdd2; border-radius: 10px; padding: 12px 16px; color: #c62828; font-size: 13px; margin: 12px 16px; }
+        .wishlist-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 84px;
+            transform: translateX(-50%) translateY(12px);
+            background: rgba(26, 31, 46, 0.95);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            z-index: 1200;
+            max-width: 88vw;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .wishlist-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
     @yield('styles')
 </head>
@@ -31,10 +53,6 @@
 
 <div class="navbar">
     <a href="{{ route('/') }}" class="nav-logo">TokoKu</a>
-    <a href="{{ route('user.pencarian') }}" class="nav-search">
-        <span>🔍</span>
-        <span class="nav-search-text">Cari produk...</span>
-    </a>
     <div class="nav-icons">
         @if(Session::has('pelanggan_id'))
             <a href="{{ route('user.keranjang') }}" class="nav-icon">
@@ -75,6 +93,78 @@
         <div class="nav-tab-icon">👤</div>Profil
     </a>
 </div>
+
+<div id="wishlistToast" class="wishlist-toast" aria-live="polite"></div>
+
+<script>
+let wishlistToastTimer = null;
+
+function showWishlistToast(message) {
+    const toast = document.getElementById('wishlistToast');
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.classList.add('show');
+
+    if (wishlistToastTimer) {
+        clearTimeout(wishlistToastTimer);
+    }
+
+    wishlistToastTimer = setTimeout(function () {
+        toast.classList.remove('show');
+    }, 1300);
+}
+
+document.addEventListener('click', async function (e) {
+    const button = e.target.closest('.js-wishlist-btn');
+    if (!button) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const form = button.closest('.js-wishlist-form');
+    if (!form) return;
+    if (button.dataset.loading === '1') return;
+
+    button.dataset.loading = '1';
+    button.classList.add('is-animating');
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Wishlist request failed');
+        }
+
+        const isActive = button.classList.contains('active');
+        if (isActive) {
+            button.classList.remove('active');
+            button.textContent = '♡';
+            showWishlistToast('Dihapus dari wishlist');
+        } else {
+            button.classList.add('active');
+            button.textContent = '♥';
+            showWishlistToast('Ditambahkan ke wishlist');
+        }
+    } catch (error) {
+        // Fallback: submit normal jika fetch gagal.
+        form.submit();
+        return;
+    } finally {
+        button.dataset.loading = '0';
+        setTimeout(function () {
+            button.classList.remove('is-animating');
+        }, 240);
+    }
+});
+</script>
 
 @yield('scripts')
 </body>

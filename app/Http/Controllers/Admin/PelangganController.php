@@ -14,7 +14,7 @@ class PelangganController extends Controller
         // Ambil data pelanggan, urutkan dari yang terbaru daftar
         $pelanggan = DB::table('pelanggan')
             ->where('role', 'user')
-            ->orderBy('PelangganID', 'desc') 
+            ->orderBy('PelangganID', 'desc')
             ->get(); // Pakai get() dulu biar gampang, kalau data udah ribuan baru pakai paginate()
 
         return view('admin.pelanggan.index', compact('pelanggan'));
@@ -30,8 +30,8 @@ class PelangganController extends Controller
             'role' => 'user',
             'created_at' => now()
         ]);
-        
-        return redirect()->route('admin.pelanggan.index')->with('success', 'User berhasil ditambah!');
+
+        return redirect()->route('admin.pelanggan')->with('success', 'User berhasil ditambah!');
     }
 
     // Fungsi kalau Admin mau hapus user yang nakal

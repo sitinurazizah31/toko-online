@@ -73,7 +73,7 @@ public function store(Request $request)
         'updated_at' => now(),
     ]);
 
-    return redirect()->route('admin.produk.index')->with('success', 'Produk Berhasil Ditambah!');
+    return redirect()->route('admin.produk')->with('success', 'Produk Berhasil Ditambah!');
 }
     // ============================================================
     // UPDATE PRODUK

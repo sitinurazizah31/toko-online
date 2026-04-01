@@ -130,7 +130,24 @@
                 <td>⭐ {{ number_format($p->rating, 1) }}</td>
                 <td>
                     <div class="actions">
-                       <button class="btn-edit" onclick="bukaEdit(x)">✏️ Edit</button>
+                        @php
+                            $fotoPath = $p->foto;
+                            if ($fotoPath && !str_contains($fotoPath, '/')) {
+                                $fotoPath = 'produk/' . $fotoPath;
+                            }
+                        @endphp
+                        <button
+                            type="button"
+                            class="btn-edit"
+                            data-id="{{ $p->ProdukID }}"
+                            data-nama="{{ $p->NamaProduk }}"
+                            data-harga="{{ $p->Harga }}"
+                            data-stok="{{ $p->Stok }}"
+                            data-kategori="{{ $p->kategori }}"
+                            data-deskripsi="{{ $p->deskripsi }}"
+                            data-foto-url="{{ $fotoPath ? asset('storage/' . $fotoPath) : '' }}"
+                            onclick="bukaEditFromButton(this)"
+                        >✏️ Edit</button>
                         <form method="POST" action="{{ route('admin.produk.destroy', $p->ProdukID) }}" onsubmit="return confirm('Hapus produk ini?')">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn-del">🗑 Hapus</button>
@@ -238,6 +255,8 @@
 
 @section('scripts')
 <script>
+const updateUrlTemplate = @json(route('admin.produk.update', ['id' => '__ID__']));
+
 function bukaModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function tutupModal(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -254,7 +273,7 @@ function previewFoto(input, previewId, iconId) {
 }
 
 function bukaEdit(p) {
-    document.getElementById('formEdit').action = '/admin/produk/' + p.ProdukID;
+    document.getElementById('formEdit').action = updateUrlTemplate.replace('__ID__', p.ProdukID);
     document.getElementById('editNama').value = p.NamaProduk;
     document.getElementById('editHarga').value = p.Harga;
     document.getElementById('editStok').value = p.Stok;
@@ -262,15 +281,31 @@ function bukaEdit(p) {
     document.getElementById('editDeskripsi').value = p.deskripsi ?? '';
 
     const preview = document.getElementById('previewEdit');
-    if (p.foto) {
-        preview.src = '/storage/' + p.foto;
+    const uploadIcon = document.getElementById('uploadIconEdit');
+    if (p.fotoUrl) {
+        preview.src = p.fotoUrl;
         preview.classList.remove('hidden');
+        uploadIcon.classList.add('hidden');
     } else {
         preview.src = '';
         preview.classList.add('hidden');
-        document.getElementById('uploadIconEdit').classList.remove('hidden');
+        uploadIcon.classList.remove('hidden');
     }
     bukaModal('modalEdit');
+}
+
+function bukaEditFromButton(button) {
+    const p = {
+        ProdukID: button.dataset.id,
+        NamaProduk: button.dataset.nama,
+        Harga: button.dataset.harga,
+        Stok: button.dataset.stok,
+        kategori: button.dataset.kategori,
+        deskripsi: button.dataset.deskripsi,
+        fotoUrl: button.dataset.fotoUrl || null,
+    };
+
+    bukaEdit(p);
 }
 
 // Tutup modal klik luar
