@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\DB; // Tambahkan ini agar bisa akses database
+use Illuminate\Support\Facades\DB; 
+use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProdukController;
@@ -56,8 +57,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth.admin')->group(function
         return view('admin.pembayaran.index', compact('pembayaran'));
     })->name('pembayaran');
 
-    // INI YANG TADI BIKIN ERROR (Route Update Pembayaran)
-    Route::put('/pembayaran/{id}', function (Illuminate\Http\Request $request, $id) {
+    Route::put('/pembayaran/{id}', function (Request $request, $id) {
         DB::table('pembayaran')->where('id', $id)->update([
             'status' => $request->status,
             'updated_at' => now(),
@@ -66,7 +66,6 @@ Route::prefix('admin')->name('admin.')->middleware('auth.admin')->group(function
         $pembayaran = DB::table('pembayaran')->where('id', $id)->first();
         if ($pembayaran && !empty($pembayaran->penjualan_id)) {
             $statusPenjualan = strtolower($request->status) === 'berhasil' ? 'sudah_bayar' : 'belum_bayar';
-
             DB::table('penjualan')
                 ->where('PenjualanID', $pembayaran->penjualan_id)
                 ->update([
@@ -74,9 +73,31 @@ Route::prefix('admin')->name('admin.')->middleware('auth.admin')->group(function
                     'updated_at' => now(),
                 ]);
         }
-
         return back()->with('success', 'Status pembayaran berhasil diperbarui!');
     })->name('pembayaran.update');
+
+    Route::post('/pembayaran/kirim/{id}', function ($id) {
+        $pembayaran = DB::table('pembayaran')->where('id', $id)->first();
+
+        if ($pembayaran) {
+            DB::table('pengiriman')->insert([
+                'pembayaran_id'  => $pembayaran->id,
+                'nama'           => $pembayaran->nama, 
+                'metode'         => $pembayaran->metode,
+                'status'         => 'diproses', 
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+
+            DB::table('pembayaran')->where('id', $id)->update([
+                'status'     => 'dikirim',
+                'updated_at' => now(),
+            ]);
+
+            return back()->with('success', 'Barang berhasil diproses ke Pengiriman!');
+        }
+        return back()->with('error', 'Data tidak ditemukan!');
+    })->name('pembayaran.kirim');
 
     // --- ROUTE PENGIRIMAN ---
     Route::get('/pengiriman', function () {
@@ -84,27 +105,30 @@ Route::prefix('admin')->name('admin.')->middleware('auth.admin')->group(function
         return view('admin.pengiriman.index', compact('pengiriman'));
     })->name('pengiriman');
 
-    // Tambahkan Update Pengiriman juga biar gak error nanti
-    Route::put('/pengiriman/{id}', function (Illuminate\Http\Request $request, $id) {
+    Route::put('/pengiriman/{id}', function (Request $request, $id) {
         DB::table('pengiriman')->where('id', $id)->update([
             'status' => $request->status,
+            'updated_at' => now(),
         ]);
         return back()->with('success', 'Status pengiriman diperbarui!');
     })->name('pengiriman.update');
 
-    // --- ROUTE LAPORAN (VERSI LENGKAP) ---
+    // BARU: UPDATE STATUS PENGIRIMAN SELESAI (DITERIMA)
+    Route::put('/pengiriman/selesai/{id}', function ($id) {
+        DB::table('pengiriman')->where('id', $id)->update([
+            'status' => 'diterima',
+            'updated_at' => now(),
+        ]);
+        return back()->with('success', 'Status: Barang telah diterima oleh pelanggan!');
+    })->name('pengiriman.selesai');
+
+    // --- ROUTE LAPORAN ---
     Route::get('/laporan', function () {
-        // 1. Ambil data untuk tabel Pembayaran (dipakai di baris 24 Blade)
         $pembayaran = DB::table('pembayaran')->get();
-
-        // 2. Ambil data untuk tabel Pengiriman (dipakai di baris 60 Blade)
         $pengiriman = DB::table('pengiriman')->get();
-
-        // Kirim kedua variabel tersebut ke view
         return view('admin.laporan.index', compact('pembayaran', 'pengiriman'));
     })->name('laporan');
 
-    // Route tambahan Sidebar (Arahkan ke view kosong dulu agar tidak error)
     Route::get('/promo',      fn() => view('admin.promo.index', ['promo' => []]))->name('promo');
     Route::get('/chat',       fn() => view('admin.chat.index'))->name('chat');
     Route::get('/pengaturan', fn() => view('admin.pengaturan.index'))->name('pengaturan');

@@ -25,7 +25,7 @@
         .logout-btn { display: block; margin-top: 10px; padding: 9px 14px; background: rgba(255,107,53,0.15); color: #FF6B35; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 600; text-decoration: none; transition: all 0.2s; border: none; width: 100%; cursor: pointer; }
         .logout-btn:hover { background: rgba(255,107,53,0.25); }
         .main { flex: 1; display: flex; flex-direction: column; margin-left: 230px; min-height: 100vh; }
-        .topbar { background: white; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eef0f5; position: sticky; top: 0; z-index: 50; }
+        .topbar { background: white; padding: 166px 28px; /* diatur ulang jika perlu */ padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eef0f5; position: sticky; top: 0; z-index: 50; }
         .page-title { font-size: 18px; font-weight: 700; color: #1a1f2e; }
         .page-sub { font-size: 12px; color: #999; margin-top: 2px; }
         .topbar-right { display: flex; align-items: center; gap: 14px; }
@@ -59,6 +59,7 @@
         <a href="{{ route('admin.pelanggan') }}" class="menu-item {{ request()->routeIs('admin.pelanggan*') ? 'active' : '' }}">
             <span class="menu-icon">👥</span> Pelanggan
         </a>
+
         <div class="menu-label">KEUANGAN</div>
         <a href="{{ route('admin.pembayaran') }}" class="menu-item {{ request()->routeIs('admin.pembayaran*') ? 'active' : '' }}">
             <span class="menu-icon">💳</span> Pembayaran
@@ -69,17 +70,8 @@
         <a href="{{ route('admin.laporan') }}" class="menu-item {{ request()->routeIs('admin.laporan*') ? 'active' : '' }}">
             <span class="menu-icon">📈</span> Laporan
         </a>
-        <div class="menu-label">LAINNYA</div>
-        <a href="{{ route('admin.promo') }}" class="menu-item {{ request()->routeIs('admin.promo*') ? 'active' : '' }}">
-            <span class="menu-icon">🏷️</span> Promo & Diskon
-        </a>
-        <a href="{{ route('admin.chat') }}" class="menu-item {{ request()->routeIs('admin.chat*') ? 'active' : '' }}">
-            <span class="menu-icon">💬</span> Chat Support
-        </a>
-        <a href="{{ route('admin.pengaturan') }}" class="menu-item {{ request()->routeIs('admin.pengaturan*') ? 'active' : '' }}">
-            <span class="menu-icon">⚙️</span> Pengaturan
-        </a>
     </div>
+    
     <div class="sidebar-bottom">
         <div class="admin-info">
             <div class="admin-avatar">{{ strtoupper(substr(Session::get('nama_pelanggan', 'A'), 0, 1)) }}</div>

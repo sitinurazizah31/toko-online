@@ -15,6 +15,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     protected $hidden = [
@@ -29,4 +30,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    protected $table = 'pelanggan'; // Memberitahu Laravel untuk pakai tabel pelanggan, bukan users
 }

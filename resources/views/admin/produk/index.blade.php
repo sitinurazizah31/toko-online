@@ -114,8 +114,11 @@
             @endphp
             <tr>
                 <td>
-                    @if($p->foto && file_exists(public_path('storage/'.$p->foto)))
-                        <img src="{{ asset('storage/'.$p->foto) }}" class="foto-box" alt="{{ $p->NamaProduk }}">
+                    @if($p->foto)
+                        <img src="{{ asset('storage/'.$p->foto) }}" 
+                             class="foto-box" 
+                             alt="{{ $p->NamaProduk }}"
+                             onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($p->NamaProduk) }}&background=f8f8f8&color=FF6B35&size=100';">
                     @else
                         <div class="foto-placeholder">📦</div>
                     @endif
@@ -132,9 +135,6 @@
                     <div class="actions">
                         @php
                             $fotoPath = $p->foto;
-                            if ($fotoPath && !str_contains($fotoPath, '/')) {
-                                $fotoPath = 'produk/' . $fotoPath;
-                            }
                         @endphp
                         <button
                             type="button"
@@ -166,7 +166,7 @@
     </table>
     <div class="pagination-wrap">
         <span>Menampilkan {{ $produk->firstItem() ?? 0 }}-{{ $produk->lastItem() ?? 0 }} dari {{ $produk->total() }} produk</span>
-        {{ $produk->withQueryString()->links() }}
+        {{ $produk->links() }}
     </div>
 </div>
 
@@ -308,7 +308,6 @@ function bukaEditFromButton(button) {
     bukaEdit(p);
 }
 
-// Tutup modal klik luar
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', function(e) {
         if (e.target === this) this.classList.add('hidden');

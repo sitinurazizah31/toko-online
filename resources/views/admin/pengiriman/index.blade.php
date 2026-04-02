@@ -71,22 +71,22 @@
     font-size: 12px;
     font-weight: bold;
     color: white;
+    display: inline-block;
 }
 
 /* Status colors */
-.badge-pending   { background: #f59e0b; } /* orange */
-.badge-dikirim   { background: #3b82f6; } /* blue */
-.badge-selesai   { background: #10b981; } /* green */
-.badge-gagal     { background: #ef4444; } /* red */
-.badge-default   { background: #6b7280; } /* abu-abu */
+.badge-diproses { background: #f59e0b; } /* orange */
+.badge-diterima { background: #10b981; } /* green */
+.badge-default  { background: #6b7280; } /* abu-abu */
 
 /* Button */
 .btn-status {
-    background: linear-gradient(135deg, #f97316, #fb923c);
-    padding: 6px 12px;
+    background: linear-gradient(135deg, #28a745, #218838);
+    padding: 8px 16px;
     color: white;
     border-radius: 8px;
     font-size: 12px;
+    font-weight: bold;
     text-decoration: none;
     transition: 0.3s;
     display: inline-block;
@@ -96,10 +96,9 @@
 
 .btn-status:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(251,146,60,0.7);
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
 }
 
-/* Empty message */
 .empty {
     text-align: center;
     padding: 30px;
@@ -114,6 +113,12 @@
         <h2>🚚 Data Pengiriman</h2>
     </div>
 
+    @if(session('success'))
+        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <table class="table-genz">
         <thead>
             <tr>
@@ -126,61 +131,39 @@
             </tr>
         </thead>
         <tbody>
-            @php
-                // Dummy data sementara jika belum ada tabel
-                $pengiriman = $pengiriman ?? collect([
-                    (object)[
-                        'id' => 1,
-                        'nama' => 'Zanza',
-                        'alamat' => 'Jl. Merpati No.10',
-                        'metode' => 'JNE',
-                        'status' => 'pending'
-                    ],
-                    (object)[
-                        'id' => 2,
-                        'nama' => 'Budi',
-                        'alamat' => 'Jl. Kenanga No.5',
-                        'metode' => 'GO-SEND',
-                        'status' => 'dikirim'
-                    ],
-                ]);
-            @endphp
-
             @forelse($pengiriman as $p)
             <tr>
                 <td>{{ $p->id }}</td>
                 <td>{{ $p->nama }}</td>
-                <td>{{ $p->alamat }}</td>
+                <td>{{ $p->alamat ?? '-' }}</td>
                 <td>{{ $p->metode }}</td>
                 <td>
                     @php
                         $statusClass = match(strtolower($p->status)) {
-                            'pending'   => 'badge-pending',
-                            'dikirim'   => 'badge-dikirim',
-                            'selesai'   => 'badge-selesai',
-                            'gagal'     => 'badge-gagal',
+                            'diproses'  => 'badge-diproses',
+                            'diterima'  => 'badge-diterima',
                             default     => 'badge-default'
                         };
                     @endphp
                     <span class="badge {{ $statusClass }}">{{ ucfirst($p->status) }}</span>
                 </td>
                 <td>
-                    @if(strtolower($p->status) == 'pending')
-                    <form action="#" method="POST" style="display:inline;">
-                        {{-- nanti diganti route pengiriman update --}}
-                        <button class="btn-status" onclick="return confirm('Ubah status menjadi Dikirim?')">🚚 Kirim</button>
+                    @if(strtolower($p->status) == 'diproses')
+                    <form action="{{ route('admin.pengiriman.selesai', $p->id) }}" method="POST" style="display:inline;">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit" class="btn-status" onclick="return confirm('Konfirmasi bahwa pesanan ini sudah sampai?')">
+                            ✅ Selesaikan Pesanan
+                        </button>
                     </form>
-                    @elseif(strtolower($p->status) == 'dikirim')
-                    <form action="#" method="POST" style="display:inline;">
-                        {{-- nanti diganti route pengiriman update --}}
-                        <button class="btn-status" onclick="return confirm('Ubah status menjadi Selesai?')">✔ Selesai</button>
-                    </form>
+                    @else
+                    <span style="color: #10b981; font-weight: bold;">🎉 Transaksi Selesai</span>
                     @endif
                 </td>
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="empty">😢 Belum ada pengiriman</td>
+                <td colspan="6" class="empty">😢 Belum ada pengiriman aktif</td>
             </tr>
             @endforelse
         </tbody>
